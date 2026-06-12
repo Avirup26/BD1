@@ -1,0 +1,250 @@
+:root {
+  --gold: #ffd25e;
+  --red: #e84545;
+  --green: #28c76f;
+  --panel: rgba(8, 12, 20, 0.72);
+  --line: rgba(255, 255, 255, 0.14);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #06080f;
+  font-family: 'Rajdhani', 'Noto Sans Bengali', sans-serif;
+  color: #f0f2f8;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#app { position: fixed; inset: 0; }
+#game-container { position: absolute; inset: 0; }
+#game-container canvas { display: block; }
+
+.hidden { display: none !important; }
+.bn { font-family: 'Noto Sans Bengali', sans-serif; }
+
+/* ---------- Loading screen ---------- */
+#loading {
+  position: absolute; inset: 0; z-index: 60;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background:
+    radial-gradient(ellipse at 50% 110%, rgba(232, 116, 60, 0.25), transparent 55%),
+    linear-gradient(180deg, #0a0f1e 0%, #131a2e 60%, #2a1d20 100%);
+  text-align: center; padding: 24px;
+}
+#loading h1 {
+  font-family: 'Noto Sans Bengali', sans-serif;
+  font-size: clamp(34px, 7vw, 64px);
+  margin: 0; color: var(--gold);
+  text-shadow: 0 0 30px rgba(255, 180, 60, 0.45);
+  letter-spacing: 2px;
+}
+#loading h2 {
+  font-size: clamp(16px, 3vw, 24px);
+  letter-spacing: 8px; margin: 6px 0 34px; color: #cfd6e6; text-transform: uppercase;
+}
+.load-bar-wrap {
+  width: min(420px, 80vw); height: 10px; border: 1px solid var(--line);
+  border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.05);
+}
+.load-bar { height: 100%; background: linear-gradient(90deg, #e8743c, var(--gold)); transition: width 0.15s; }
+.load-label { margin-top: 12px; font-size: 14px; color: #9aa3b8; min-height: 20px; }
+.menu-buttons { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; justify-content: center; }
+.btn {
+  font-family: inherit; font-size: 18px; font-weight: 700; letter-spacing: 2px;
+  padding: 12px 34px; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--gold); color: var(--gold); background: rgba(255, 210, 94, 0.08);
+  transition: all 0.15s; text-transform: uppercase;
+}
+.btn:hover { background: var(--gold); color: #14100a; box-shadow: 0 0 24px rgba(255, 210, 94, 0.4); }
+.btn.secondary { border-color: #8a93a8; color: #c5cbd9; background: transparent; }
+.btn.secondary:hover { background: #c5cbd9; color: #10131c; box-shadow: none; }
+.load-tip { margin-top: 30px; max-width: 520px; font-size: 14px; color: #7e8699; line-height: 1.6; }
+#webgl-error { color: #ff9a9a; max-width: 480px; line-height: 1.6; font-size: 16px; }
+
+/* ---------- HUD top right ---------- */
+#hud-topright {
+  position: absolute; top: 14px; right: 16px; z-index: 20;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+#hud-money { font-size: 26px; font-weight: 700; color: var(--green); letter-spacing: 1px; }
+#hud-clock { font-size: 19px; font-weight: 600; color: #e8ecf5; }
+#hud-wanted { font-size: 24px; letter-spacing: 4px; line-height: 1; }
+#hud-wanted .star { color: #3a4156; -webkit-text-stroke: 1px rgba(0,0,0,0.6); transition: color 0.2s; }
+#hud-wanted .star.on { color: var(--gold); text-shadow: 0 0 10px rgba(255, 200, 60, 0.8); }
+#hud-wanted.flashing .star.on { animation: starflash 0.5s infinite alternate; }
+@keyframes starflash { from { color: var(--gold); } to { color: var(--red); text-shadow: 0 0 14px rgba(255, 60, 60, 0.9); } }
+#hud-weapon { font-size: 16px; font-weight: 600; color: #cdd4e4; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 3px 10px; }
+#radio-hud { font-size: 14px; font-weight: 600; color: #9fe8c0; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 3px 10px; }
+
+/* ---------- Minimap + vitals (bottom left) ---------- */
+#hud-bottomleft { position: absolute; left: 16px; bottom: 14px; z-index: 20; width: 188px; }
+#minimap-wrap {
+  width: 188px; height: 188px; border-radius: 50%; overflow: hidden;
+  border: 3px solid rgba(255,255,255,0.25); box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+  background: #11141d;
+}
+#minimap { width: 100%; height: 100%; }
+.vital { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.vital .ico { font-size: 13px; width: 18px; text-align: center; filter: drop-shadow(0 1px 2px #000); }
+.vital .bar-wrap { flex: 1; height: 9px; background: rgba(0,0,0,0.55); border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); }
+.vital .bar { height: 100%; transition: width 0.25s; }
+#health-bar { background: linear-gradient(90deg, #2faa5e, #4ee08a); }
+#armor-bar { background: linear-gradient(90deg, #3f6fb5, #6fa8e8); }
+
+/* ---------- Mission UI ---------- */
+#mission-ribbon {
+  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 20;
+  background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--gold);
+  padding: 9px 22px; border-radius: 4px; max-width: min(620px, 86vw);
+  text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+#mission-ribbon .mtitle { color: var(--gold); font-weight: 700; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
+#mission-ribbon .mobj { font-size: 17px; margin-top: 2px; line-height: 1.4; }
+#mission-ribbon .mtimer { color: var(--red); font-weight: 700; font-size: 16px; margin-top: 2px; }
+
+#interact-hint {
+  position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%); z-index: 20;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  padding: 6px 16px; font-size: 16px; font-weight: 600; color: #ffe9b0;
+}
+#interact-hint kbd {
+  background: #ffe9b0; color: #1a1408; border-radius: 3px; padding: 0 7px;
+  font-family: inherit; font-weight: 700; margin-right: 6px;
+}
+
+#beacon-label {
+  position: absolute; z-index: 15; transform: translate(-50%, -100%);
+  background: rgba(20, 18, 6, 0.8); border: 1px solid var(--gold); color: var(--gold);
+  font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 3px;
+  pointer-events: none; white-space: nowrap;
+}
+
+/* ---------- District popup ---------- */
+#district-popup {
+  position: absolute; left: 28px; bottom: 230px; z-index: 20; pointer-events: none;
+  opacity: 0; animation: districtfade 4s ease forwards;
+}
+@keyframes districtfade {
+  0% { opacity: 0; transform: translateY(16px); }
+  12% { opacity: 1; transform: translateY(0); }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+#district-popup .d-bn {
+  font-family: 'Noto Sans Bengali', sans-serif; font-size: 44px; font-weight: 700;
+  color: var(--gold); text-shadow: 0 2px 12px rgba(0,0,0,0.9); font-style: italic; line-height: 1.1;
+}
+#district-popup .d-en {
+  font-size: 19px; letter-spacing: 5px; text-transform: uppercase; color: #e6eaf2;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+}
+
+/* ---------- Toast ---------- */
+#toast {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 30;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  padding: 9px 24px; font-size: 16px; font-weight: 600; max-width: min(600px, 88vw); text-align: center;
+  animation: toastfade 3.5s ease forwards; pointer-events: none; line-height: 1.45;
+}
+@keyframes toastfade {
+  0% { opacity: 0; transform: translate(-50%, -8px); }
+  8% { opacity: 1; transform: translate(-50%, 0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- Floating bump texts ---------- */
+#float-layer { position: absolute; inset: 0; z-index: 14; pointer-events: none; overflow: hidden; }
+.bump-text {
+  position: absolute; transform: translate(-50%, -100%);
+  font-family: 'Noto Sans Bengali', sans-serif; font-size: 15px; font-weight: 700;
+  color: #fff; text-shadow: 0 1px 4px #000; white-space: nowrap; pointer-events: none;
+}
+
+/* ---------- Damage flash ---------- */
+#damage-flash {
+  position: absolute; inset: 0; z-index: 25; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(200, 20, 20, 0.55) 100%);
+  opacity: 0; transition: opacity 0.4s;
+}
+
+/* ---------- Death / busted ---------- */
+#death-overlay {
+  position: absolute; inset: 0; z-index: 45; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; background: rgba(10, 4, 4, 0.78); text-align: center;
+}
+#death-overlay .d-bn { font-family: 'Noto Sans Bengali', sans-serif; font-size: 64px; font-weight: 700; color: var(--red); text-shadow: 0 0 40px rgba(220, 40, 40, 0.6); }
+#death-overlay .d-en { font-size: 26px; letter-spacing: 12px; color: #d8dce6; text-transform: uppercase; margin-top: 6px; }
+
+/* ---------- Cutscene ---------- */
+#cutscene {
+  position: absolute; inset: 0; z-index: 44; background: #000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px;
+}
+#cutscene .c-title { font-family: 'Noto Sans Bengali', sans-serif; font-size: 40px; color: var(--gold); font-weight: 700; margin-bottom: 22px; }
+#cutscene .c-line { font-size: 19px; color: #d5dae6; line-height: 1.9; max-width: 640px; }
+
+/* ---------- Pause menu ---------- */
+#pause-menu {
+  position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+  background: rgba(5, 8, 14, 0.82); backdrop-filter: blur(4px);
+}
+.pause-panel {
+  background: #11161f; border: 1px solid var(--line); border-radius: 8px;
+  padding: 30px 38px; width: min(420px, 92vw); max-height: 88vh; overflow-y: auto;
+}
+.pause-panel h2 { margin: 0 0 4px; color: var(--gold); font-size: 30px; letter-spacing: 3px; }
+.pause-panel h3 { margin: 0 0 18px; color: #8d96ab; font-size: 15px; font-weight: 500; }
+.pause-panel .btn { display: block; width: 100%; margin-bottom: 10px; text-align: center; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; margin: 14px 0; gap: 14px; }
+.setting-row label { font-size: 15px; color: #b9c1d2; letter-spacing: 1px; }
+.setting-row input[type="range"] { flex: 1; accent-color: var(--gold); }
+.setting-row select {
+  background: #1c2330; color: #e8ecf5; border: 1px solid var(--line); border-radius: 4px;
+  padding: 6px 10px; font-family: inherit; font-size: 15px;
+}
+.controls-list { font-size: 14px; color: #aab2c4; line-height: 1.9; column-count: 2; column-gap: 26px; margin-top: 8px; }
+.controls-list b { color: #ffe9b0; font-weight: 700; }
+
+/* ---------- Full map ---------- */
+#map-overlay {
+  position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+  background: rgba(4, 6, 11, 0.9); flex-direction: column; gap: 10px;
+}
+#bigmap { border: 2px solid var(--line); border-radius: 6px; background: #0d1018; max-width: 92vw; max-height: 78vh; }
+#map-overlay .map-title { font-size: 22px; color: var(--gold); letter-spacing: 4px; font-weight: 700; }
+#map-overlay .map-hint { font-size: 14px; color: #8d96ab; }
+
+/* ---------- Touch controls ---------- */
+#touch-ui { position: absolute; inset: 0; z-index: 22; pointer-events: none; }
+#joystick-zone {
+  position: absolute; left: 18px; bottom: 220px; width: 130px; height: 130px;
+  border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06);
+  pointer-events: auto; touch-action: none;
+}
+#joystick-knob {
+  position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; border-radius: 50%;
+  background: rgba(255, 210, 94, 0.45); border: 2px solid rgba(255, 220, 120, 0.8);
+  transform: translate(-50%, -50%);
+}
+.touch-buttons { position: absolute; right: 16px; bottom: 100px; display: flex; flex-direction: column; gap: 12px; pointer-events: auto; }
+.tbtn {
+  width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35);
+  background: rgba(10, 14, 22, 0.6); color: #ffe9b0; font-size: 20px; font-weight: 700;
+  font-family: inherit; touch-action: none;
+}
+.tbtn:active { background: rgba(255, 210, 94, 0.5); color: #14100a; }
+
+@media (max-width: 720px) {
+  #hud-bottomleft { width: 130px; }
+  #minimap-wrap { width: 130px; height: 130px; }
+  #district-popup .d-bn { font-size: 30px; }
+  #district-popup { bottom: 170px; }
+  #hud-money { font-size: 21px; }
+}
